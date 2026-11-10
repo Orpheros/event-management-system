@@ -47,7 +47,8 @@ export class EventService {
       return await repo.find({ order: { startDate: "ASC" } });
     }
     return Array.from(this.memoryEvents.values()).sort(
-      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
     );
   }
 
@@ -57,9 +58,11 @@ export class EventService {
       id: e.id,
       title: e.title,
       description: e.description,
-      startDate: e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
+      startDate:
+        e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
       endDate: e.endDate instanceof Date ? e.endDate.toISOString() : e.endDate,
-      start_date: e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
+      start_date:
+        e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
       end_date: e.endDate instanceof Date ? e.endDate.toISOString() : e.endDate,
       variant: e.variant,
       status: e.status,
@@ -82,8 +85,13 @@ export class EventService {
     event.description = data.description || "";
     event.location = data.location || "";
     event.startDate = new Date(data.startDate || data.start_date || new Date());
-    event.endDate = (data.endDate || data.end_date) ? new Date(data.endDate || data.end_date!) : null;
-    event.variant = (data.variant as "primary" | "success" | "warning" | "danger") || "primary";
+    event.endDate =
+      data.endDate || data.end_date
+        ? new Date(data.endDate || data.end_date!)
+        : null;
+    event.variant =
+      (data.variant as "primary" | "success" | "warning" | "danger") ||
+      "primary";
     event.status = data.status || "";
     event.image = data.image || "";
     event.createdAt = new Date();
@@ -106,11 +114,20 @@ export class EventService {
       if (data.title !== undefined) event.title = data.title;
       if (data.description !== undefined) event.description = data.description;
       if (data.location !== undefined) event.location = data.location;
-      if (data.startDate || data.start_date) event.startDate = new Date(data.startDate || data.start_date!);
+      if (data.startDate || data.start_date)
+        event.startDate = new Date(data.startDate || data.start_date!);
       if (data.endDate !== undefined || data.end_date !== undefined) {
-        event.endDate = (data.endDate || data.end_date) ? new Date(data.endDate || data.end_date!) : null;
+        event.endDate =
+          data.endDate || data.end_date
+            ? new Date(data.endDate || data.end_date!)
+            : null;
       }
-      if (data.variant !== undefined) event.variant = data.variant as "primary" | "success" | "warning" | "danger";
+      if (data.variant !== undefined)
+        event.variant = data.variant as
+          | "primary"
+          | "success"
+          | "warning"
+          | "danger";
       if (data.status !== undefined) event.status = data.status;
       if (data.image !== undefined) event.image = data.image;
       event.updatedAt = new Date();
@@ -124,11 +141,20 @@ export class EventService {
     if (data.title !== undefined) event.title = data.title;
     if (data.description !== undefined) event.description = data.description;
     if (data.location !== undefined) event.location = data.location;
-    if (data.startDate || data.start_date) event.startDate = new Date(data.startDate || data.start_date!);
+    if (data.startDate || data.start_date)
+      event.startDate = new Date(data.startDate || data.start_date!);
     if (data.endDate !== undefined || data.end_date !== undefined) {
-      event.endDate = (data.endDate || data.end_date) ? new Date(data.endDate || data.end_date!) : null;
+      event.endDate =
+        data.endDate || data.end_date
+          ? new Date(data.endDate || data.end_date!)
+          : null;
     }
-    if (data.variant !== undefined) event.variant = data.variant as "primary" | "success" | "warning" | "danger";
+    if (data.variant !== undefined)
+      event.variant = data.variant as
+        | "primary"
+        | "success"
+        | "warning"
+        | "danger";
     if (data.status !== undefined) event.status = data.status;
     if (data.image !== undefined) event.image = data.image;
     event.updatedAt = new Date();

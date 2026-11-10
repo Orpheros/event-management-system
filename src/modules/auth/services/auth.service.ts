@@ -25,7 +25,7 @@ export class AuthService {
     return user;
   }
 
-  public signToken(user: { id: string; email: string; stellarRole: string }) {
+  public signToken(user: { id: string; email: string; stellarRole: "admin" | "member" }) {
     return this.fastify.jwt.sign(
       {
         id: user.id,

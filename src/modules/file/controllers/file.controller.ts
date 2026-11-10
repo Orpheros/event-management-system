@@ -1,22 +1,31 @@
-import { Controller, GET, Inject } from "fastify-decorators";
+import { Controller, GET, POST, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { FileService } from "../services/file.service.js";
-
-interface FileParams {
-  collection: string;
-  id: string;
-  filename: string;
-}
 
 @Controller("/files")
 export default class FileController {
   @Inject(FileService)
   private fileService!: FileService;
 
-  @GET("/:collection/:id/:filename")
-  async serveFile(request: FastifyRequest<{ Params: FileParams }>, reply: FastifyReply) {
-    const { collection, id, filename } = request.params;
-    const resolvedPath = this.fileService.resolveFilePath(collection, id, filename);
+  @POST("/upload")
+  async upload(request: FastifyRequest, reply: FastifyReply) {
+    const file = await request.file();
+
+    if (!file) {
+      return reply.status(400).send({ error: "No file provided" });
+    }
+
+    const filename = await this.fileService.save(file.filename, file.file);
+    return reply.status(201).send({
+      filename,
+      url: `/api/files/${filename}`,
+    });
+  }
+
+  @GET("/:filename")
+  async serveFile(request: FastifyRequest<{ Params: { filename: string } }>, reply: FastifyReply) {
+    const { filename } = request.params;
+    const resolvedPath = this.fileService.resolveFilePath("", "", filename);
 
     if (resolvedPath) {
       const mime = this.fileService.getMimeType(filename);

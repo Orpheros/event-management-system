@@ -1,4 +1,12 @@
-import { Controller, GET, POST, PUT, PATCH, DELETE, Inject } from "fastify-decorators";
+import {
+  Controller,
+  GET,
+  POST,
+  PUT,
+  PATCH,
+  DELETE,
+  Inject,
+} from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { EventService } from "../services/event.service.js";
 
@@ -37,14 +45,20 @@ export default class EventController {
   }
 
   @POST("/raw")
-  async createEvent(request: FastifyRequest<{ Body: EventBody }>, reply: FastifyReply) {
+  async createEvent(
+    request: FastifyRequest<{ Body: EventBody }>,
+    reply: FastifyReply,
+  ) {
     const data = request.body || {};
     const created = await this.eventService.create(data);
     return created.toJSON();
   }
 
   @PUT("/raw")
-  async updateEvent(request: FastifyRequest<{ Body: EventBody }>, reply: FastifyReply) {
+  async updateEvent(
+    request: FastifyRequest<{ Body: EventBody }>,
+    reply: FastifyReply,
+  ) {
     const { id, ...data } = request.body || {};
     if (!id) {
       return reply.status(400).send({ error: "Event id is required" });
@@ -54,7 +68,10 @@ export default class EventController {
   }
 
   @PATCH("/raw")
-  async patchEvent(request: FastifyRequest<{ Body: EventBody }>, reply: FastifyReply) {
+  async patchEvent(
+    request: FastifyRequest<{ Body: EventBody }>,
+    reply: FastifyReply,
+  ) {
     const { id, ...data } = request.body || {};
     if (!id) {
       return reply.status(400).send({ error: "Event id is required" });
@@ -64,10 +81,15 @@ export default class EventController {
   }
 
   @DELETE("/raw")
-  async deleteEvent(request: FastifyRequest<{ Querystring: DeleteQuery }>, reply: FastifyReply) {
+  async deleteEvent(
+    request: FastifyRequest<{ Querystring: DeleteQuery }>,
+    reply: FastifyReply,
+  ) {
     const id = request.query.id;
     if (!id) {
-      return reply.status(400).send({ error: "Event id query parameter is required" });
+      return reply
+        .status(400)
+        .send({ error: "Event id query parameter is required" });
     }
     await this.eventService.delete(id);
     return { success: true, id };
@@ -75,14 +97,20 @@ export default class EventController {
 
   // Compatibility routes for /api/events CRUD directly
   @POST("/")
-  async createEventDirect(request: FastifyRequest<{ Body: EventBody }>, reply: FastifyReply) {
+  async createEventDirect(
+    request: FastifyRequest<{ Body: EventBody }>,
+    reply: FastifyReply,
+  ) {
     const data = request.body || {};
     const created = await this.eventService.create(data);
     return created.toJSON();
   }
 
   @PUT("/")
-  async updateEventDirect(request: FastifyRequest<{ Body: EventBody }>, reply: FastifyReply) {
+  async updateEventDirect(
+    request: FastifyRequest<{ Body: EventBody }>,
+    reply: FastifyReply,
+  ) {
     const { id, ...data } = request.body || {};
     if (!id) {
       return reply.status(400).send({ error: "Event id is required" });
@@ -92,10 +120,15 @@ export default class EventController {
   }
 
   @DELETE("/")
-  async deleteEventDirect(request: FastifyRequest<{ Querystring: DeleteQuery }>, reply: FastifyReply) {
+  async deleteEventDirect(
+    request: FastifyRequest<{ Querystring: DeleteQuery }>,
+    reply: FastifyReply,
+  ) {
     const id = request.query.id;
     if (!id) {
-      return reply.status(400).send({ error: "Event id query parameter is required" });
+      return reply
+        .status(400)
+        .send({ error: "Event id query parameter is required" });
     }
     await this.eventService.delete(id);
     return { success: true, id };
