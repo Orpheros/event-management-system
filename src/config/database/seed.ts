@@ -18,7 +18,6 @@ export async function seedDatabase() {
   const existingAdmin = await userRepo.findOneBy({ email: "xemmo25@gmail.com" });
   if (!existingAdmin) {
     const admin = new User();
-    admin.id = "xemmoadmin0001";
     admin.email = "xemmo25@gmail.com";
     admin.passwordHash = await bcrypt.hash("password123", 10);
     admin.name = "Super Admin";
@@ -35,7 +34,6 @@ export async function seedDatabase() {
   const existingPo = await priceRepo.findOneBy({ type: "po" });
   if (!existingPo) {
     const po = new ChekiPrice();
-    po.id = "cheki_price_po0";
     po.type = "po";
     po.price = 35000;
     await priceRepo.save(po);
@@ -44,7 +42,6 @@ export async function seedDatabase() {
   const existingOts = await priceRepo.findOneBy({ type: "ots" });
   if (!existingOts) {
     const ots = new ChekiPrice();
-    ots.id = "cheki_price_ots";
     ots.type = "ots";
     ots.price = 40000;
     await priceRepo.save(ots);
@@ -57,7 +54,6 @@ export async function seedDatabase() {
   if (memberCount === 0) {
     const membersData = [
       {
-        id: "l17syk3g4nslfkb",
         slug: "maricel",
         name: "Maricel",
         role: "Lead Vocalist",
@@ -68,7 +64,6 @@ export async function seedDatabase() {
         instagram: "https://instagram.com/maricel",
       },
       {
-        id: "m88tyk3g4nslfa1",
         slug: "rakun",
         name: "Rakun",
         role: "Main Dancer",
@@ -79,7 +74,6 @@ export async function seedDatabase() {
         instagram: "https://instagram.com/rakun",
       },
       {
-        id: "y99tyk3g4nslfb2",
         slug: "yenna",
         name: "Yenna",
         role: "Visual & Vocalist",
@@ -104,7 +98,6 @@ export async function seedDatabase() {
   const eventCount = await eventRepo.count();
   if (eventCount === 0) {
     const event = new Event();
-    event.id = "5hot6qw6t16064o";
     event.title = "Event Stellar Luna";
     event.description = "JIEXPO Event";
     event.location = "Lippo Kramat Jati";

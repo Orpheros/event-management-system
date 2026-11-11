@@ -2,7 +2,6 @@ import { Controller, GET, POST, PUT, DELETE, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { MemberService } from "../services/member.service.js";
 import { saveUploadedFile } from "../../../utils/upload.js";
-import { generateId } from "../../../utils/id.js";
 
 interface DeleteQuery {
   id?: string;
@@ -36,9 +35,9 @@ export default class MemberController {
 
   @POST("/raw")
   async createMember(request: FastifyRequest, reply: FastifyReply) {
-    const recordId = generateId();
     let fields: Record<string, string> = {};
-    let savedFilename = "";
+    let fileBuffer: Buffer | null = null;
+    let fileName = "";
 
     if (request.isMultipart()) {
       const parts = request.parts();
@@ -46,7 +45,8 @@ export default class MemberController {
         if (part.type === "file") {
           const buffer = await part.toBuffer();
           if (buffer.length > 0) {
-            savedFilename = await saveUploadedFile("members", recordId, part.filename, buffer);
+            fileBuffer = buffer;
+            fileName = part.filename;
           }
         } else {
           fields[part.fieldname] = part.value as string;
@@ -54,11 +54,10 @@ export default class MemberController {
       }
     } else {
       fields = (request.body as Record<string, string>) || {};
-      savedFilename = fields.image || "";
+      fileName = fields.image || "";
     }
 
     const created = await this.memberService.create({
-      id: recordId,
       name: fields.name,
       slug: fields.slug,
       role: fields.role,
@@ -66,8 +65,15 @@ export default class MemberController {
       notes: fields.notes,
       birthdate: fields.birthdate,
       instagram: fields.instagram,
-      image: savedFilename,
+      image: fileBuffer ? "" : fileName,
     });
+
+    // Save the upload under the generated numeric id, then persist the filename
+    if (fileBuffer) {
+      const savedFilename = await saveUploadedFile("members", String(created.id), fileName, fileBuffer);
+      const updated = await this.memberService.update(created.id, { image: savedFilename });
+      return updated.toJSON();
+    }
 
     return created.toJSON();
   }
@@ -75,7 +81,8 @@ export default class MemberController {
   @PUT("/raw")
   async updateMember(request: FastifyRequest, reply: FastifyReply) {
     let fields: Record<string, string> = {};
-    let savedFilename = "";
+    let fileBuffer: Buffer | null = null;
+    let fileName = "";
 
     if (request.isMultipart()) {
       const parts = request.parts();
@@ -83,8 +90,8 @@ export default class MemberController {
         if (part.type === "file") {
           const buffer = await part.toBuffer();
           if (buffer.length > 0) {
-            const targetId = fields.id || generateId();
-            savedFilename = await saveUploadedFile("members", targetId, part.filename, buffer);
+            fileBuffer = buffer;
+            fileName = part.filename;
           }
         } else {
           fields[part.fieldname] = part.value as string;
@@ -92,15 +99,21 @@ export default class MemberController {
       }
     } else {
       fields = (request.body as Record<string, string>) || {};
-      savedFilename = fields.image || "";
+      fileName = fields.image || "";
     }
 
-    const id = fields.id;
-    if (!id) {
+    const id = Number(fields.id);
+    if (!fields.id) {
       return reply.status(400).send({ error: "Member id is required" });
     }
 
-    const updatePayload: Record<string, string> = { ...fields };
+    let savedFilename = fileBuffer ? "" : fileName;
+    if (fileBuffer) {
+      savedFilename = await saveUploadedFile("members", String(id), fileName, fileBuffer);
+    }
+
+    const { id: _id, ...rest } = fields;
+    const updatePayload: Record<string, string> = { ...rest };
     if (savedFilename) {
       updatePayload.image = savedFilename;
     }
@@ -115,7 +128,7 @@ export default class MemberController {
     if (!id) {
       return reply.status(400).send({ error: "Member id query parameter is required" });
     }
-    await this.memberService.delete(id);
+    await this.memberService.delete(Number(id));
     return { success: true, id };
   }
 }

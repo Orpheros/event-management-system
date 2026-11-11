@@ -1,11 +1,11 @@
 import { Service } from "fastify-decorators";
 import { AppDataSource } from "../../../config/database/database.js";
 import { Member } from "../entities/member.entity.js";
-import { generateId } from "../../../utils/id.js";
 
 @Service()
 export class MemberService {
-  private memoryMembers: Map<string, Member> = new Map();
+  private memoryMembers: Map<number, Member> = new Map();
+  private memorySeq = 1;
 
   constructor() {
     this.seedDefaultMemoryMembers();
@@ -14,7 +14,6 @@ export class MemberService {
   private seedDefaultMemoryMembers() {
     const defaultMembers: Array<Partial<Member>> = [
       {
-        id: "l17syk3g4nslfkb",
         slug: "maricel",
         name: "Maricel",
         role: "Lead Vocalist",
@@ -25,7 +24,6 @@ export class MemberService {
         instagram: "https://instagram.com/maricel",
       },
       {
-        id: "m88tyk3g4nslfa1",
         slug: "rakun",
         name: "Rakun",
         role: "Main Dancer",
@@ -36,7 +34,6 @@ export class MemberService {
         instagram: "https://instagram.com/rakun",
       },
       {
-        id: "y99tyk3g4nslfb2",
         slug: "yenna",
         name: "Yenna",
         role: "Visual & Vocalist",
@@ -51,6 +48,7 @@ export class MemberService {
     for (const m of defaultMembers) {
       const member = new Member();
       Object.assign(member, m);
+      member.id = this.memorySeq++;
       member.createdAt = new Date();
       member.updatedAt = new Date();
       this.memoryMembers.set(member.id, member);
@@ -79,7 +77,7 @@ export class MemberService {
     return null;
   }
 
-  public async findById(id: string): Promise<Member | null> {
+  public async findById(id: number): Promise<Member | null> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Member);
       return await repo.findOneBy({ id });
@@ -89,9 +87,8 @@ export class MemberService {
 
   public async create(data: Partial<Member>): Promise<Member> {
     const member = new Member();
-    member.id = data.id || generateId();
     member.name = data.name || "";
-    member.slug = (data.slug || data.name || generateId())
+    member.slug = (data.slug || data.name || "member")
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9_-]/g, "-")
@@ -109,11 +106,12 @@ export class MemberService {
       const repo = AppDataSource.getRepository(Member);
       return await repo.save(member);
     }
+    member.id = this.memorySeq++;
     this.memoryMembers.set(member.id, member);
     return member;
   }
 
-  public async update(id: string, data: Partial<Member>): Promise<Member> {
+  public async update(id: number, data: Partial<Member>): Promise<Member> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Member);
       const member = await repo.findOneBy({ id });
@@ -149,7 +147,7 @@ export class MemberService {
     return member;
   }
 
-  public async delete(id: string): Promise<boolean> {
+  public async delete(id: number): Promise<boolean> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Member);
       const res = await repo.delete({ id });

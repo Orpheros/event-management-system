@@ -1,10 +1,8 @@
 import { Service } from "fastify-decorators";
 import { AppDataSource } from "../../../config/database/database.js";
 import { Event } from "../entities/event.entity.js";
-import { generateId } from "../../../utils/id.js";
 
 export interface EventInput {
-  id?: string;
   title?: string;
   description?: string;
   location?: string;
@@ -19,7 +17,8 @@ export interface EventInput {
 
 @Service()
 export class EventService {
-  private memoryEvents: Map<string, Event> = new Map();
+  private memoryEvents: Map<number, Event> = new Map();
+  private memorySeq = 1;
 
   constructor() {
     this.seedDefaultMemoryEvents();
@@ -27,7 +26,7 @@ export class EventService {
 
   private seedDefaultMemoryEvents() {
     const event = new Event();
-    event.id = "5hot6qw6t16064o";
+    event.id = this.memorySeq++;
     event.title = "Event Stellar Luna";
     event.description = "JIEXPO Event";
     event.location = "Lippo Kramat Jati";
@@ -70,7 +69,7 @@ export class EventService {
     }));
   }
 
-  public async findById(id: string): Promise<Event | null> {
+  public async findById(id: number): Promise<Event | null> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Event);
       return await repo.findOneBy({ id });
@@ -80,7 +79,6 @@ export class EventService {
 
   public async create(data: EventInput): Promise<Event> {
     const event = new Event();
-    event.id = data.id || generateId();
     event.title = data.title || "";
     event.description = data.description || "";
     event.location = data.location || "";
@@ -101,11 +99,12 @@ export class EventService {
       const repo = AppDataSource.getRepository(Event);
       return await repo.save(event);
     }
+    event.id = this.memorySeq++;
     this.memoryEvents.set(event.id, event);
     return event;
   }
 
-  public async update(id: string, data: EventInput): Promise<Event> {
+  public async update(id: number, data: EventInput): Promise<Event> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Event);
       const event = await repo.findOneBy({ id });
@@ -163,7 +162,7 @@ export class EventService {
     return event;
   }
 
-  public async delete(id: string): Promise<boolean> {
+  public async delete(id: number): Promise<boolean> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Event);
       const res = await repo.delete({ id });

@@ -25,7 +25,7 @@ export class AuthService {
     return user;
   }
 
-  public signToken(user: { id: string; email: string; stellarRole: "admin" | "member" }) {
+  public signToken(user: { id: number; email: string; stellarRole: "admin" | "member" }) {
     return this.fastify.jwt.sign(
       {
         id: user.id,
@@ -36,7 +36,7 @@ export class AuthService {
     );
   }
 
-  public async getUserById(id: string) {
+  public async getUserById(id: number) {
     return await this.userService.findById(id);
   }
 }

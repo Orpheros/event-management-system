@@ -16,7 +16,7 @@ export default class ListingController {
 
   @GET("/:id")
   async getById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const listing = await this.listingService.findById(request.params.id);
+    const listing = await this.listingService.findById(Number(request.params.id));
     if (!listing) {
       return reply.status(404).send({ error: "Listing not found" });
     }
@@ -35,7 +35,7 @@ export default class ListingController {
     reply: FastifyReply
   ) {
     try {
-      const updated = await this.listingService.update(request.params.id, request.body || {});
+      const updated = await this.listingService.update(Number(request.params.id), request.body || {});
       return updated.toJSON();
     } catch (err: unknown) {
       return reply.status(404).send({ error: (err as Error).message });
@@ -44,7 +44,7 @@ export default class ListingController {
 
   @DELETE("/:id")
   async delete(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const success = await this.listingService.delete(request.params.id);
+    const success = await this.listingService.delete(Number(request.params.id));
     return { success, id: request.params.id };
   }
 }

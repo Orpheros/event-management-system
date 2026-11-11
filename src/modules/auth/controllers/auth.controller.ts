@@ -37,7 +37,7 @@ export default class AuthController {
   @POST("/refresh")
   async refresh(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const decoded = await request.jwtVerify<{ id: string }>();
+      const decoded = await request.jwtVerify<{ id: number }>();
       const user = await this.authService.getUserById(decoded.id);
       if (!user) {
         return reply.status(401).send({ error: "User no longer exists" });
@@ -56,7 +56,7 @@ export default class AuthController {
   @GET("/me")
   async me(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const decoded = await request.jwtVerify<{ id: string }>();
+      const decoded = await request.jwtVerify<{ id: number }>();
       const user = await this.authService.getUserById(decoded.id);
       if (!user) {
         return reply.status(404).send({ error: "User not found" });

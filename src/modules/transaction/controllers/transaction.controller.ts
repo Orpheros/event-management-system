@@ -34,7 +34,7 @@ export default class TransactionController {
     }
 
     try {
-      const updated = await this.transactionService.update(id, data);
+      const updated = await this.transactionService.update(Number(id), data);
       return updated.toJSON();
     } catch (err: unknown) {
       return reply.status(404).send({ error: (err as Error).message });
@@ -48,7 +48,7 @@ export default class TransactionController {
       return reply.status(400).send({ error: "Transaction id is required" });
     }
 
-    const success = await this.transactionService.delete(id);
+    const success = await this.transactionService.delete(Number(id));
     return { success, id };
   }
 }

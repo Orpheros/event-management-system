@@ -1,11 +1,11 @@
 import { Service } from "fastify-decorators";
 import { AppDataSource } from "../../../config/database/database.js";
 import { Listing } from "../entities/listing.entity.js";
-import { generateId } from "../../../utils/id.js";
 
 @Service()
 export class ListingService {
-  private memoryListings: Map<string, Listing> = new Map();
+  private memoryListings: Map<number, Listing> = new Map();
+  private memorySeq = 1;
 
   public async findAll(): Promise<Listing[]> {
     if (AppDataSource.isInitialized) {
@@ -15,7 +15,7 @@ export class ListingService {
     return Array.from(this.memoryListings.values());
   }
 
-  public async findById(id: string): Promise<Listing | null> {
+  public async findById(id: number): Promise<Listing | null> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Listing);
       return await repo.findOneBy({ id });
@@ -25,7 +25,6 @@ export class ListingService {
 
   public async create(data: Partial<Listing>): Promise<Listing> {
     const listing = new Listing();
-    listing.id = data.id || generateId();
     listing.name = data.name || "";
     listing.price = data.price || 0;
     listing.category = data.category || "";
@@ -40,11 +39,12 @@ export class ListingService {
       const repo = AppDataSource.getRepository(Listing);
       return await repo.save(listing);
     }
+    listing.id = this.memorySeq++;
     this.memoryListings.set(listing.id, listing);
     return listing;
   }
 
-  public async update(id: string, data: Partial<Listing>): Promise<Listing> {
+  public async update(id: number, data: Partial<Listing>): Promise<Listing> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Listing);
       const listing = await repo.findOneBy({ id });
@@ -82,7 +82,7 @@ export class ListingService {
     return listing;
   }
 
-  public async delete(id: string): Promise<boolean> {
+  public async delete(id: number): Promise<boolean> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Listing);
       const res = await repo.delete({ id });

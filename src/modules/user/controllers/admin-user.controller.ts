@@ -31,7 +31,7 @@ export default class AdminUserController {
     }
 
     try {
-      const updated = await this.userService.updateRole(id, role);
+      const updated = await this.userService.updateRole(Number(id), role);
       return updated.toJSON();
     } catch (err: unknown) {
       return reply.status(404).send({ error: (err as Error).message });

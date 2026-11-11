@@ -15,7 +15,7 @@ export default class UserController {
 
   @GET("/:id")
   async getById(request: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) {
-    const user = await this.userService.findById(request.params.id);
+    const user = await this.userService.findById(Number(request.params.id));
     if (!user) {
       return reply.status(404).send({ error: "User not found" });
     }

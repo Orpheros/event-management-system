@@ -1,11 +1,10 @@
 import { Service } from "fastify-decorators";
 import { AppDataSource } from "../../../config/database/database.js";
 import { ChekiPrice } from "../entities/cheki-price.entity.js";
-import { generateId } from "../../../utils/id.js";
 
 export interface ChekiSettingsResponse {
-  ots: { id: string; price: number };
-  po: { id: string; price: number };
+  ots: { id: number; price: number };
+  po: { id: number; price: number };
 }
 
 @Service()
@@ -18,14 +17,14 @@ export class SettingService {
 
   private seedDefaultPrices() {
     const po = new ChekiPrice();
-    po.id = "cheki_price_po0";
+    po.id = 1;
     po.type = "po";
     po.price = 35000;
     po.createdAt = new Date();
     po.updatedAt = new Date();
 
     const ots = new ChekiPrice();
-    ots.id = "cheki_price_ots";
+    ots.id = 2;
     ots.type = "ots";
     ots.price = 40000;
     ots.createdAt = new Date();
@@ -44,11 +43,11 @@ export class SettingService {
 
       return {
         po: {
-          id: poRecord ? poRecord.id : "cheki_price_po0",
+          id: poRecord ? poRecord.id : 1,
           price: poRecord ? poRecord.price : 35000,
         },
         ots: {
-          id: otsRecord ? otsRecord.id : "cheki_price_ots",
+          id: otsRecord ? otsRecord.id : 2,
           price: otsRecord ? otsRecord.price : 40000,
         },
       };
@@ -58,8 +57,8 @@ export class SettingService {
     const ots = this.memoryPrices.get("ots");
 
     return {
-      po: { id: po ? po.id : "cheki_price_po0", price: po ? po.price : 35000 },
-      ots: { id: ots ? ots.id : "cheki_price_ots", price: ots ? ots.price : 40000 },
+      po: { id: po ? po.id : 1, price: po ? po.price : 35000 },
+      ots: { id: ots ? ots.id : 2, price: ots ? ots.price : 40000 },
     };
   }
 
@@ -90,7 +89,6 @@ export class SettingService {
         let p = await repo.findOneBy({ type: "po" });
         if (!p) {
           p = new ChekiPrice();
-          p.id = generateId();
           p.type = "po";
         }
         p.price = poVal;
@@ -101,7 +99,6 @@ export class SettingService {
         let o = await repo.findOneBy({ type: "ots" });
         if (!o) {
           o = new ChekiPrice();
-          o.id = generateId();
           o.type = "ots";
         }
         o.price = otsVal;
@@ -110,7 +107,7 @@ export class SettingService {
     } else {
       if (poVal !== undefined) {
         const p = this.memoryPrices.get("po") || new ChekiPrice();
-        p.id = p.id || generateId();
+        p.id = p.id || 1;
         p.type = "po";
         p.price = poVal;
         p.updatedAt = new Date();
@@ -119,7 +116,7 @@ export class SettingService {
 
       if (otsVal !== undefined) {
         const o = this.memoryPrices.get("ots") || new ChekiPrice();
-        o.id = o.id || generateId();
+        o.id = o.id || 2;
         o.type = "ots";
         o.price = otsVal;
         o.updatedAt = new Date();

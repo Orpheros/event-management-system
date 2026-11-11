@@ -2,7 +2,6 @@ import { Controller, POST, GET, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { TransactionService } from "../services/transaction.service.js";
 import { saveUploadedFile } from "../../../utils/upload.js";
-import { generateId } from "../../../utils/id.js";
 
 interface StatusQuery {
   id?: string;
@@ -15,9 +14,9 @@ export default class PaymentController {
 
   @POST("/")
   async submitPreOrder(request: FastifyRequest, reply: FastifyReply) {
-    const recordId = generateId();
     let fields: Record<string, string> = {};
-    let receiptFilename = "";
+    let fileBuffer: Buffer | null = null;
+    let fileName = "";
 
     if (request.isMultipart()) {
       const parts = request.parts();
@@ -25,7 +24,8 @@ export default class PaymentController {
         if (part.type === "file") {
           const buffer = await part.toBuffer();
           if (buffer.length > 0) {
-            receiptFilename = await saveUploadedFile("transaction", recordId, part.filename, buffer);
+            fileBuffer = buffer;
+            fileName = part.filename;
           }
         } else {
           fields[part.fieldname] = part.value as string;
@@ -33,7 +33,7 @@ export default class PaymentController {
       }
     } else {
       fields = (request.body as Record<string, string>) || {};
-      receiptFilename = fields.receipt || "";
+      fileName = fields.receipt || "";
     }
 
     const name = fields.name;
@@ -47,14 +47,19 @@ export default class PaymentController {
       });
     }
 
-    const transaction = await this.transactionService.createPO({
-      id: recordId,
+    let transaction = await this.transactionService.createPO({
       name,
       eventDate,
       items,
       notes,
-      receipt: receiptFilename,
+      receipt: fileBuffer ? "" : fileName,
     });
+
+    // Save the receipt under the generated numeric id, then persist the filename
+    if (fileBuffer) {
+      const receiptFilename = await saveUploadedFile("transaction", String(transaction.id), fileName, fileBuffer);
+      transaction = await this.transactionService.update(transaction.id, { receipt: receiptFilename });
+    }
 
     return {
       success: true,
@@ -71,7 +76,7 @@ export default class PaymentController {
       return reply.status(400).send({ error: "Transaction id is required" });
     }
 
-    const tx = await this.transactionService.findById(id);
+    const tx = await this.transactionService.findById(Number(id));
     if (!tx) {
       return reply.status(404).send({ error: "Transaction not found" });
     }

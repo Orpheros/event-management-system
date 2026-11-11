@@ -1,7 +1,6 @@
 import { Service } from "fastify-decorators";
 import { AppDataSource } from "../../../config/database/database.js";
 import { Transaction } from "../entities/transaction.entity.js";
-import { generateId } from "../../../utils/id.js";
 import { transactionBus } from "../../../utils/event-bus.js";
 
 export interface ItemPayload {
@@ -12,7 +11,8 @@ export interface ItemPayload {
 
 @Service()
 export class TransactionService {
-  private memoryTransactions: Map<string, Transaction> = new Map();
+  private memoryTransactions: Map<number, Transaction> = new Map();
+  private memorySeq = 1;
 
   public parseItems(itemsInput: unknown): { quantity: number; memberSummary: string } {
     let items: ItemPayload[] = [];
@@ -51,7 +51,7 @@ export class TransactionService {
     );
   }
 
-  public async findById(id: string): Promise<Transaction | null> {
+  public async findById(id: number): Promise<Transaction | null> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(Transaction);
       return await repo.findOneBy({ id });
@@ -60,7 +60,6 @@ export class TransactionService {
   }
 
   public async createPO(payload: {
-    id?: string;
     name: string;
     eventDate: string;
     items: unknown;
@@ -70,7 +69,6 @@ export class TransactionService {
     const { quantity, memberSummary } = this.parseItems(payload.items);
 
     const tx = new Transaction();
-    tx.id = payload.id || generateId();
     tx.name = payload.name;
     tx.eventDate = payload.eventDate;
     tx.member = memberSummary;
@@ -87,6 +85,7 @@ export class TransactionService {
       const repo = AppDataSource.getRepository(Transaction);
       saved = await repo.save(tx);
     } else {
+      tx.id = this.memorySeq++;
       this.memoryTransactions.set(tx.id, tx);
       saved = tx;
     }
@@ -100,7 +99,6 @@ export class TransactionService {
   }
 
   public async createOTS(payload: {
-    id?: string;
     name: string;
     eventDate: string;
     items: unknown;
@@ -109,7 +107,6 @@ export class TransactionService {
     const { quantity, memberSummary } = this.parseItems(payload.items);
 
     const tx = new Transaction();
-    tx.id = payload.id || generateId();
     tx.name = payload.name;
     tx.eventDate = payload.eventDate;
     tx.member = memberSummary;
@@ -126,6 +123,7 @@ export class TransactionService {
       const repo = AppDataSource.getRepository(Transaction);
       saved = await repo.save(tx);
     } else {
+      tx.id = this.memorySeq++;
       this.memoryTransactions.set(tx.id, tx);
       saved = tx;
     }
@@ -138,7 +136,7 @@ export class TransactionService {
     return saved;
   }
 
-  public async update(id: string, payload: Partial<Transaction>): Promise<Transaction> {
+  public async update(id: number, payload: Partial<Transaction>): Promise<Transaction> {
     let updated: Transaction;
 
     if (AppDataSource.isInitialized) {
@@ -177,7 +175,7 @@ export class TransactionService {
     return updated;
   }
 
-  public async delete(id: string): Promise<boolean> {
+  public async delete(id: number): Promise<boolean> {
     let success = false;
     let deletedRecord: Record<string, unknown> = { id };
 

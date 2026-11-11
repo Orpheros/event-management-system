@@ -2,12 +2,12 @@ import { Service } from "fastify-decorators";
 import bcrypt from "bcryptjs";
 import { AppDataSource } from "../../../config/database/database.js";
 import { User } from "../entities/user.entity.js";
-import { generateId } from "../../../utils/id.js";
 
 @Service()
 export class UserService {
   // In-memory fallback if database is not connected yet
-  private memoryUsers: Map<string, User> = new Map();
+  private memoryUsers: Map<number, User> = new Map();
+  private memorySeq = 1;
 
   constructor() {
     this.seedDefaultMemoryUser();
@@ -15,7 +15,7 @@ export class UserService {
 
   private seedDefaultMemoryUser() {
     const defaultAdmin = new User();
-    defaultAdmin.id = "xemmoadmin0001";
+    defaultAdmin.id = this.memorySeq++;
     defaultAdmin.email = "xemmo25@gmail.com";
     defaultAdmin.passwordHash = bcrypt.hashSync("password123", 10);
     defaultAdmin.name = "Super Admin";
@@ -36,7 +36,7 @@ export class UserService {
     return Array.from(this.memoryUsers.values()).sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  public async findById(id: string): Promise<User | null> {
+  public async findById(id: number): Promise<User | null> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(User);
       return await repo.findOneBy({ id });
@@ -57,7 +57,7 @@ export class UserService {
     return null;
   }
 
-  public async updateRole(id: string, role: "admin" | "member"): Promise<User> {
+  public async updateRole(id: number, role: "admin" | "member"): Promise<User> {
     if (AppDataSource.isInitialized) {
       const repo = AppDataSource.getRepository(User);
       const user = await repo.findOneBy({ id });
@@ -75,7 +75,6 @@ export class UserService {
 
   public async create(data: Partial<User>): Promise<User> {
     const user = new User();
-    user.id = data.id || generateId();
     user.email = data.email!;
     user.passwordHash = data.passwordHash || (data as { password?: string }).password ? bcrypt.hashSync((data as { password?: string }).password!, 10) : "";
     user.name = data.name || "";
@@ -90,6 +89,7 @@ export class UserService {
       const repo = AppDataSource.getRepository(User);
       return await repo.save(user);
     }
+    user.id = this.memorySeq++;
     this.memoryUsers.set(user.id, user);
     return user;
   }

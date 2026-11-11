@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 
 export interface JwtPayload {
-  id: string;
+  id: number;
   email: string;
   role: "admin" | "member";
   iat?: number;

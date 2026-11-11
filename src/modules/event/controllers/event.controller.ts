@@ -63,7 +63,7 @@ export default class EventController {
     if (!id) {
       return reply.status(400).send({ error: "Event id is required" });
     }
-    const updated = await this.eventService.update(id, data);
+    const updated = await this.eventService.update(Number(id), data);
     return updated.toJSON();
   }
 
@@ -76,7 +76,7 @@ export default class EventController {
     if (!id) {
       return reply.status(400).send({ error: "Event id is required" });
     }
-    const updated = await this.eventService.update(id, data);
+    const updated = await this.eventService.update(Number(id), data);
     return updated.toJSON();
   }
 
@@ -91,7 +91,7 @@ export default class EventController {
         .status(400)
         .send({ error: "Event id query parameter is required" });
     }
-    await this.eventService.delete(id);
+    await this.eventService.delete(Number(id));
     return { success: true, id };
   }
 
@@ -115,7 +115,7 @@ export default class EventController {
     if (!id) {
       return reply.status(400).send({ error: "Event id is required" });
     }
-    const updated = await this.eventService.update(id, data);
+    const updated = await this.eventService.update(Number(id), data);
     return updated.toJSON();
   }
 
@@ -130,7 +130,7 @@ export default class EventController {
         .status(400)
         .send({ error: "Event id query parameter is required" });
     }
-    await this.eventService.delete(id);
+    await this.eventService.delete(Number(id));
     return { success: true, id };
   }
 }

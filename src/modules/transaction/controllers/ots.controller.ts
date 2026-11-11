@@ -1,7 +1,6 @@
 import { Controller, POST, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { TransactionService } from "../services/transaction.service.js";
-import { generateId } from "../../../utils/id.js";
 
 interface OTSBody {
   name: string;
@@ -43,7 +42,6 @@ export default class OTSController {
     }
 
     const transaction = await this.transactionService.createOTS({
-      id: generateId(),
       name,
       eventDate,
       items,
