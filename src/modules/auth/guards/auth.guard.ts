@@ -7,6 +7,19 @@ export interface JwtPayload {
   iat?: number;
   exp?: number;
 }
+export async function apiKeyGuard(
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<void> {
+  const expected = process.env.API_KEY;
+  if (!expected) {
+    return reply.status(500).send({ error: "API key not configured" });
+  }
+  if (request.headers["x-api-key"] !== expected) {
+    return reply.status(401).send({ error: "Invalid or missing API key" });
+  }
+}
+
 export async function authGuard(
   request: FastifyRequest,
   reply: FastifyReply,

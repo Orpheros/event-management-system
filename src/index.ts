@@ -9,6 +9,7 @@ import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import { AppDataSource } from "./config/database/database.js";
 import { seedDatabase } from "./config/database/seed.js";
+import { apiKeyGuard } from "./modules/auth/guards/auth.guard.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,17 +27,24 @@ await fastify.register(cors, {
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 });
 
-// Register JWT
-await fastify.register(jwt, {
-  secret:
-    process.env.JWT_SECRET || "super-secret-stellar-luna-jwt-token-key-2026",
-});
+// // Register JWT
+// await fastify.register(jwt, {
+//   secret:
+//     process.env.JWT_SECRET || "super-secret-stellar-luna-jwt-token-key-2026",
+// });
 
 // Register Multipart (File uploads up to 5MB)
 await fastify.register(multipart, {
   limits: {
     fileSize: 5 * 1024 * 1024,
   },
+});
+
+// Require an API key for all /api routes
+fastify.addHook("onRequest", async (request, reply) => {
+  if (request.url.startsWith("/api")) {
+    await apiKeyGuard(request, reply);
+  }
 });
 
 // Register modular controllers via fastify-decorators
