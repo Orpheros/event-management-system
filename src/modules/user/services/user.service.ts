@@ -5,72 +5,27 @@ import { User } from "../entities/user.entity.js";
 
 @Service()
 export class UserService {
-  // In-memory fallback if database is not connected yet
-  private memoryUsers: Map<number, User> = new Map();
-  private memorySeq = 1;
-
-  constructor() {
-    this.seedDefaultMemoryUser();
-  }
-
-  private seedDefaultMemoryUser() {
-    const defaultAdmin = new User();
-    defaultAdmin.id = this.memorySeq++;
-    defaultAdmin.email = "xemmo25@gmail.com";
-    defaultAdmin.passwordHash = bcrypt.hashSync("password123", 10);
-    defaultAdmin.name = "Super Admin";
-    defaultAdmin.avatar = "";
-    defaultAdmin.stellarRole = "admin";
-    defaultAdmin.emailVisibility = true;
-    defaultAdmin.verified = true;
-    defaultAdmin.createdAt = new Date();
-    defaultAdmin.updatedAt = new Date();
-    this.memoryUsers.set(defaultAdmin.id, defaultAdmin);
+  private get repo() {
+    return AppDataSource.getRepository(User);
   }
 
   public async findAll(): Promise<User[]> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(User);
-      return await repo.find({ order: { name: "ASC" } });
-    }
-    return Array.from(this.memoryUsers.values()).sort((a, b) => a.name.localeCompare(b.name));
+    return await this.repo.find({ order: { name: "ASC" } });
   }
 
   public async findById(id: number): Promise<User | null> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(User);
-      return await repo.findOneBy({ id });
-    }
-    return this.memoryUsers.get(id) || null;
+    return await this.repo.findOneBy({ id });
   }
 
   public async findByEmail(email: string): Promise<User | null> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(User);
-      return await repo.findOneBy({ email });
-    }
-    for (const u of this.memoryUsers.values()) {
-      if (u.email.toLowerCase() === email.toLowerCase()) {
-        return u;
-      }
-    }
-    return null;
+    return await this.repo.findOneBy({ email });
   }
 
   public async updateRole(id: number, role: "admin" | "member"): Promise<User> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(User);
-      const user = await repo.findOneBy({ id });
-      if (!user) throw new Error("User not found");
-      user.stellarRole = role;
-      return await repo.save(user);
-    }
-    const user = this.memoryUsers.get(id);
+    const user = await this.repo.findOneBy({ id });
     if (!user) throw new Error("User not found");
     user.stellarRole = role;
-    user.updatedAt = new Date();
-    this.memoryUsers.set(id, user);
-    return user;
+    return await this.repo.save(user);
   }
 
   public async create(data: Partial<User>): Promise<User> {
@@ -82,15 +37,7 @@ export class UserService {
     user.stellarRole = data.stellarRole || "member";
     user.emailVisibility = data.emailVisibility || false;
     user.verified = data.verified || false;
-    user.createdAt = new Date();
-    user.updatedAt = new Date();
 
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(User);
-      return await repo.save(user);
-    }
-    user.id = this.memorySeq++;
-    this.memoryUsers.set(user.id, user);
-    return user;
+    return await this.repo.save(user);
   }
 }

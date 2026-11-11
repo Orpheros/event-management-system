@@ -19,7 +19,7 @@ interface EventBody {
   end_date?: string;
   startDate?: string;
   endDate?: string;
-  variant?: "primary" | "success" | "warning" | "danger";
+  link?: string;
   status?: string;
   image?: string;
 }
@@ -34,17 +34,17 @@ export default class EventController {
   private eventService!: EventService;
 
   @GET("/")
-  async getCalendarEvents(request: FastifyRequest, reply: FastifyReply) {
-    return await this.eventService.findForCalendar();
-  }
-
-  @GET("/raw")
-  async getRawEvents(request: FastifyRequest, reply: FastifyReply) {
+  async getEvents(request: FastifyRequest, reply: FastifyReply) {
     const events = await this.eventService.findRaw();
     return events.map((e) => e.toJSON());
   }
 
-  @POST("/raw")
+  @GET("/calendar")
+  async getCalendarEvents(request: FastifyRequest, reply: FastifyReply) {
+    return await this.eventService.findForCalendar();
+  }
+
+  @POST("/")
   async createEvent(
     request: FastifyRequest<{ Body: EventBody }>,
     reply: FastifyReply,
@@ -54,7 +54,7 @@ export default class EventController {
     return created.toJSON();
   }
 
-  @PUT("/raw")
+  @PUT("/")
   async updateEvent(
     request: FastifyRequest<{ Body: EventBody }>,
     reply: FastifyReply,
@@ -67,7 +67,7 @@ export default class EventController {
     return updated.toJSON();
   }
 
-  @PATCH("/raw")
+  @PATCH("/")
   async patchEvent(
     request: FastifyRequest<{ Body: EventBody }>,
     reply: FastifyReply,
@@ -80,47 +80,8 @@ export default class EventController {
     return updated.toJSON();
   }
 
-  @DELETE("/raw")
-  async deleteEvent(
-    request: FastifyRequest<{ Querystring: DeleteQuery }>,
-    reply: FastifyReply,
-  ) {
-    const id = request.query.id;
-    if (!id) {
-      return reply
-        .status(400)
-        .send({ error: "Event id query parameter is required" });
-    }
-    await this.eventService.delete(Number(id));
-    return { success: true, id };
-  }
-
-  // Compatibility routes for /api/events CRUD directly
-  @POST("/")
-  async createEventDirect(
-    request: FastifyRequest<{ Body: EventBody }>,
-    reply: FastifyReply,
-  ) {
-    const data = request.body || {};
-    const created = await this.eventService.create(data);
-    return created.toJSON();
-  }
-
-  @PUT("/")
-  async updateEventDirect(
-    request: FastifyRequest<{ Body: EventBody }>,
-    reply: FastifyReply,
-  ) {
-    const { id, ...data } = request.body || {};
-    if (!id) {
-      return reply.status(400).send({ error: "Event id is required" });
-    }
-    const updated = await this.eventService.update(Number(id), data);
-    return updated.toJSON();
-  }
-
   @DELETE("/")
-  async deleteEventDirect(
+  async deleteEvent(
     request: FastifyRequest<{ Querystring: DeleteQuery }>,
     reply: FastifyReply,
   ) {

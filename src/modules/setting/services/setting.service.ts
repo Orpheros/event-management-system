@@ -9,56 +9,24 @@ export interface ChekiSettingsResponse {
 
 @Service()
 export class SettingService {
-  private memoryPrices: Map<string, ChekiPrice> = new Map();
-
-  constructor() {
-    this.seedDefaultPrices();
-  }
-
-  private seedDefaultPrices() {
-    const po = new ChekiPrice();
-    po.id = 1;
-    po.type = "po";
-    po.price = 35000;
-    po.createdAt = new Date();
-    po.updatedAt = new Date();
-
-    const ots = new ChekiPrice();
-    ots.id = 2;
-    ots.type = "ots";
-    ots.price = 40000;
-    ots.createdAt = new Date();
-    ots.updatedAt = new Date();
-
-    this.memoryPrices.set("po", po);
-    this.memoryPrices.set("ots", ots);
+  private get repo() {
+    return AppDataSource.getRepository(ChekiPrice);
   }
 
   public async getPrices(): Promise<ChekiSettingsResponse> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(ChekiPrice);
-      const all = await repo.find();
-      const poRecord = all.find((p) => p.type.toLowerCase() === "po");
-      const otsRecord = all.find((p) => p.type.toLowerCase() === "ots");
-
-      return {
-        po: {
-          id: poRecord ? poRecord.id : 1,
-          price: poRecord ? poRecord.price : 35000,
-        },
-        ots: {
-          id: otsRecord ? otsRecord.id : 2,
-          price: otsRecord ? otsRecord.price : 40000,
-        },
-      };
-    }
-
-    const po = this.memoryPrices.get("po");
-    const ots = this.memoryPrices.get("ots");
+    const all = await this.repo.find();
+    const poRecord = all.find((p) => p.type.toLowerCase() === "po");
+    const otsRecord = all.find((p) => p.type.toLowerCase() === "ots");
 
     return {
-      po: { id: po ? po.id : 1, price: po ? po.price : 35000 },
-      ots: { id: ots ? ots.id : 2, price: ots ? ots.price : 40000 },
+      po: {
+        id: poRecord ? poRecord.id : 1,
+        price: poRecord ? poRecord.price : 35000,
+      },
+      ots: {
+        id: otsRecord ? otsRecord.id : 2,
+        price: otsRecord ? otsRecord.price : 40000,
+      },
     };
   }
 
@@ -82,46 +50,24 @@ export class SettingService {
     if (typeof body.ots === "number") otsVal = body.ots;
     else if (body.ots && typeof body.ots.price === "number") otsVal = body.ots.price;
 
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(ChekiPrice);
-
-      if (poVal !== undefined) {
-        let p = await repo.findOneBy({ type: "po" });
-        if (!p) {
-          p = new ChekiPrice();
-          p.type = "po";
-        }
-        p.price = poVal;
-        await repo.save(p);
-      }
-
-      if (otsVal !== undefined) {
-        let o = await repo.findOneBy({ type: "ots" });
-        if (!o) {
-          o = new ChekiPrice();
-          o.type = "ots";
-        }
-        o.price = otsVal;
-        await repo.save(o);
-      }
-    } else {
-      if (poVal !== undefined) {
-        const p = this.memoryPrices.get("po") || new ChekiPrice();
-        p.id = p.id || 1;
+    if (poVal !== undefined) {
+      let p = await this.repo.findOneBy({ type: "po" });
+      if (!p) {
+        p = new ChekiPrice();
         p.type = "po";
-        p.price = poVal;
-        p.updatedAt = new Date();
-        this.memoryPrices.set("po", p);
       }
+      p.price = poVal;
+      await this.repo.save(p);
+    }
 
-      if (otsVal !== undefined) {
-        const o = this.memoryPrices.get("ots") || new ChekiPrice();
-        o.id = o.id || 2;
+    if (otsVal !== undefined) {
+      let o = await this.repo.findOneBy({ type: "ots" });
+      if (!o) {
+        o = new ChekiPrice();
         o.type = "ots";
-        o.price = otsVal;
-        o.updatedAt = new Date();
-        this.memoryPrices.set("ots", o);
       }
+      o.price = otsVal;
+      await this.repo.save(o);
     }
 
     return await this.getPrices();

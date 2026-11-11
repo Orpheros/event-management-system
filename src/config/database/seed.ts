@@ -15,7 +15,9 @@ export async function seedDatabase() {
 
   // 1. Superadmin User
   const userRepo = AppDataSource.getRepository(User);
-  const existingAdmin = await userRepo.findOneBy({ email: "xemmo25@gmail.com" });
+  const existingAdmin = await userRepo.findOneBy({
+    email: "xemmo25@gmail.com",
+  });
   if (!existingAdmin) {
     const admin = new User();
     admin.email = "xemmo25@gmail.com";
@@ -103,7 +105,7 @@ export async function seedDatabase() {
     event.location = "Lippo Kramat Jati";
     event.startDate = new Date("2026-04-22T00:00:00.000Z");
     event.endDate = new Date("2026-04-22T00:00:00.000Z");
-    event.variant = "success";
+    event.link = "https://maps.google.com/?q=Lippo+Kramat+Jati";
     event.status = "pre_sale";
     await eventRepo.save(event);
     console.log("✅ Seeded initial sample event");
@@ -113,7 +115,10 @@ export async function seedDatabase() {
 }
 
 // Allow running standalone: tsx src/config/database/seed.ts
-if (process.argv[1]?.endsWith("seed.ts") || process.argv[1]?.endsWith("seed.js")) {
+if (
+  process.argv[1]?.endsWith("seed.ts") ||
+  process.argv[1]?.endsWith("seed.js")
+) {
   AppDataSource.initialize()
     .then(async () => {
       await seedDatabase();

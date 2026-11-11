@@ -11,8 +11,9 @@ export interface ItemPayload {
 
 @Service()
 export class TransactionService {
-  private memoryTransactions: Map<number, Transaction> = new Map();
-  private memorySeq = 1;
+  private get repo() {
+    return AppDataSource.getRepository(Transaction);
+  }
 
   public parseItems(itemsInput: unknown): { quantity: number; memberSummary: string } {
     let items: ItemPayload[] = [];
@@ -42,21 +43,11 @@ export class TransactionService {
   }
 
   public async findAll(): Promise<Transaction[]> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Transaction);
-      return await repo.find({ order: { createdAt: "DESC" } });
-    }
-    return Array.from(this.memoryTransactions.values()).sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return await this.repo.find({ order: { createdAt: "DESC" } });
   }
 
   public async findById(id: number): Promise<Transaction | null> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Transaction);
-      return await repo.findOneBy({ id });
-    }
-    return this.memoryTransactions.get(id) || null;
+    return await this.repo.findOneBy({ id });
   }
 
   public async createPO(payload: {
@@ -77,18 +68,8 @@ export class TransactionService {
     tx.type = "PO";
     tx.status = "pending";
     tx.notes = payload.notes || "";
-    tx.createdAt = new Date();
-    tx.updatedAt = new Date();
 
-    let saved: Transaction;
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Transaction);
-      saved = await repo.save(tx);
-    } else {
-      tx.id = this.memorySeq++;
-      this.memoryTransactions.set(tx.id, tx);
-      saved = tx;
-    }
+    const saved = await this.repo.save(tx);
 
     transactionBus.emitTransaction({
       action: "create",
@@ -115,18 +96,8 @@ export class TransactionService {
     tx.type = "OTS";
     tx.status = "confirmed";
     tx.notes = payload.notes || "";
-    tx.createdAt = new Date();
-    tx.updatedAt = new Date();
 
-    let saved: Transaction;
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Transaction);
-      saved = await repo.save(tx);
-    } else {
-      tx.id = this.memorySeq++;
-      this.memoryTransactions.set(tx.id, tx);
-      saved = tx;
-    }
+    const saved = await this.repo.save(tx);
 
     transactionBus.emitTransaction({
       action: "create",
@@ -137,35 +108,16 @@ export class TransactionService {
   }
 
   public async update(id: number, payload: Partial<Transaction>): Promise<Transaction> {
-    let updated: Transaction;
+    const tx = await this.repo.findOneBy({ id });
+    if (!tx) throw new Error("Transaction not found");
 
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Transaction);
-      const tx = await repo.findOneBy({ id });
-      if (!tx) throw new Error("Transaction not found");
+    if (payload.status !== undefined) tx.status = payload.status;
+    if (payload.name !== undefined) tx.name = payload.name;
+    if (payload.eventDate !== undefined) tx.eventDate = payload.eventDate;
+    if (payload.member !== undefined) tx.member = payload.member;
+    if (payload.notes !== undefined) tx.notes = payload.notes;
 
-      if (payload.status !== undefined) tx.status = payload.status;
-      if (payload.name !== undefined) tx.name = payload.name;
-      if (payload.eventDate !== undefined) tx.eventDate = payload.eventDate;
-      if (payload.member !== undefined) tx.member = payload.member;
-      if (payload.notes !== undefined) tx.notes = payload.notes;
-      tx.updatedAt = new Date();
-
-      updated = await repo.save(tx);
-    } else {
-      const tx = this.memoryTransactions.get(id);
-      if (!tx) throw new Error("Transaction not found");
-
-      if (payload.status !== undefined) tx.status = payload.status;
-      if (payload.name !== undefined) tx.name = payload.name;
-      if (payload.eventDate !== undefined) tx.eventDate = payload.eventDate;
-      if (payload.member !== undefined) tx.member = payload.member;
-      if (payload.notes !== undefined) tx.notes = payload.notes;
-      tx.updatedAt = new Date();
-
-      this.memoryTransactions.set(id, tx);
-      updated = tx;
-    }
+    const updated = await this.repo.save(tx);
 
     transactionBus.emitTransaction({
       action: "update",
@@ -176,24 +128,14 @@ export class TransactionService {
   }
 
   public async delete(id: number): Promise<boolean> {
-    let success = false;
+    const existing = await this.repo.findOneBy({ id });
     let deletedRecord: Record<string, unknown> = { id };
-
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Transaction);
-      const existing = await repo.findOneBy({ id });
-      if (existing) {
-        deletedRecord = existing.toJSON();
-      }
-      const res = await repo.delete({ id });
-      success = (res.affected || 0) > 0;
-    } else {
-      const existing = this.memoryTransactions.get(id);
-      if (existing) {
-        deletedRecord = existing.toJSON();
-      }
-      success = this.memoryTransactions.delete(id);
+    if (existing) {
+      deletedRecord = existing.toJSON();
     }
+
+    const res = await this.repo.delete({ id });
+    const success = (res.affected || 0) > 0;
 
     if (success) {
       transactionBus.emitTransaction({

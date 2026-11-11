@@ -75,19 +75,20 @@ fastify.get("/health", async () => {
 
 const start = async () => {
   try {
-    // Attempt database connection gracefully
+    // Database connection is required — all services use the repository
     try {
       await AppDataSource.initialize();
       console.log("PostgreSQL database connected successfully.");
       await seedDatabase();
     } catch (dbErr) {
-      console.warn(
-        "PostgreSQL database not connected yet:",
+      console.error(
+        "Failed to connect to PostgreSQL:",
         (dbErr as Error).message,
       );
-      console.log(
-        "ℹServer running with in-memory store. You can connect PostgreSQL anytime.",
+      console.error(
+        "The server requires a database connection. Check your env/.env settings.",
       );
+      process.exit(1);
     }
 
     const port = Number(process.env.PORT) || 3000;

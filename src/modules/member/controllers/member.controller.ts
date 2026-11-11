@@ -18,12 +18,6 @@ export default class MemberController {
     return members.map((m) => m.toJSON());
   }
 
-  @GET("/raw")
-  async getRaw(request: FastifyRequest, reply: FastifyReply) {
-    const members = await this.memberService.findAll();
-    return members.map((m) => m.toJSON());
-  }
-
   @GET("/:slug")
   async getBySlug(request: FastifyRequest<{ Params: { slug: string } }>, reply: FastifyReply) {
     const member = await this.memberService.findBySlug(request.params.slug);
@@ -33,7 +27,7 @@ export default class MemberController {
     return member.toJSON();
   }
 
-  @POST("/raw")
+  @POST("/")
   async createMember(request: FastifyRequest, reply: FastifyReply) {
     let fields: Record<string, string> = {};
     let fileBuffer: Buffer | null = null;
@@ -78,7 +72,7 @@ export default class MemberController {
     return created.toJSON();
   }
 
-  @PUT("/raw")
+  @PUT("/")
   async updateMember(request: FastifyRequest, reply: FastifyReply) {
     let fields: Record<string, string> = {};
     let fileBuffer: Buffer | null = null;
@@ -122,7 +116,7 @@ export default class MemberController {
     return updated.toJSON();
   }
 
-  @DELETE("/raw")
+  @DELETE("/")
   async deleteMember(request: FastifyRequest<{ Querystring: DeleteQuery }>, reply: FastifyReply) {
     const id = request.query.id;
     if (!id) {

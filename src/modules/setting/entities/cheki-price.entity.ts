@@ -24,8 +24,6 @@ export class ChekiPrice {
       price: this.price,
       created: this.createdAt ? this.createdAt.toISOString() : new Date().toISOString(),
       updated: this.updatedAt ? this.updatedAt.toISOString() : new Date().toISOString(),
-      collectionId: "cheki_price",
-      collectionName: "cheki_price",
     };
   }
 }

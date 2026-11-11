@@ -39,13 +39,10 @@ export class User {
       name: this.name,
       avatar: this.avatar,
       stellar_role: this.stellarRole,
-      stellarRole: this.stellarRole,
       emailVisibility: this.emailVisibility,
       verified: this.verified,
       created: this.createdAt ? this.createdAt.toISOString() : new Date().toISOString(),
       updated: this.updatedAt ? this.updatedAt.toISOString() : new Date().toISOString(),
-      collectionId: "_pb_users_auth_",
-      collectionName: "users",
     };
   }
 }

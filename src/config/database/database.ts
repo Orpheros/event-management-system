@@ -4,7 +4,6 @@ import { Event } from "../../modules/event/entities/event.entity.js";
 import { Member } from "../../modules/member/entities/member.entity.js";
 import { Transaction } from "../../modules/transaction/entities/transaction.entity.js";
 import { ChekiPrice } from "../../modules/setting/entities/cheki-price.entity.js";
-import { Listing } from "../../modules/listing/entities/listing.entity.js";
 
 export const AppDataSource = new DataSource({
   type: "postgres",
@@ -15,7 +14,7 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || "stellar_luna",
   synchronize: process.env.NODE_ENV === "development",
   logging: false,
-  entities: [User, Event, Member, Transaction, ChekiPrice, Listing],
+  entities: [User, Event, Member, Transaction, ChekiPrice],
   subscribers: [],
   migrations: [],
 });

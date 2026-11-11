@@ -10,45 +10,19 @@ export interface EventInput {
   end_date?: string | Date | null;
   startDate?: string | Date;
   endDate?: string | Date | null;
-  variant?: "primary" | "success" | "warning" | "danger";
+  link?: string;
   status?: string;
   image?: string;
 }
 
 @Service()
 export class EventService {
-  private memoryEvents: Map<number, Event> = new Map();
-  private memorySeq = 1;
-
-  constructor() {
-    this.seedDefaultMemoryEvents();
-  }
-
-  private seedDefaultMemoryEvents() {
-    const event = new Event();
-    event.id = this.memorySeq++;
-    event.title = "Event Stellar Luna";
-    event.description = "JIEXPO Event";
-    event.location = "Lippo Kramat Jati";
-    event.startDate = new Date("2026-04-22T00:00:00.000Z");
-    event.endDate = new Date("2026-04-22T00:00:00.000Z");
-    event.variant = "success";
-    event.status = "pre_sale";
-    event.image = "";
-    event.createdAt = new Date();
-    event.updatedAt = new Date();
-    this.memoryEvents.set(event.id, event);
+  private get repo() {
+    return AppDataSource.getRepository(Event);
   }
 
   public async findRaw(): Promise<Event[]> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Event);
-      return await repo.find({ order: { startDate: "ASC" } });
-    }
-    return Array.from(this.memoryEvents.values()).sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
+    return await this.repo.find({ order: { startDate: "ASC" } });
   }
 
   public async findForCalendar() {
@@ -57,24 +31,17 @@ export class EventService {
       id: e.id,
       title: e.title,
       description: e.description,
-      startDate:
-        e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
-      endDate: e.endDate instanceof Date ? e.endDate.toISOString() : e.endDate,
       start_date:
         e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
       end_date: e.endDate instanceof Date ? e.endDate.toISOString() : e.endDate,
-      variant: e.variant,
+      link: e.link,
       status: e.status,
       location: e.location,
     }));
   }
 
   public async findById(id: number): Promise<Event | null> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Event);
-      return await repo.findOneBy({ id });
-    }
-    return this.memoryEvents.get(id) || null;
+    return await this.repo.findOneBy({ id });
   }
 
   public async create(data: EventInput): Promise<Event> {
@@ -87,54 +54,15 @@ export class EventService {
       data.endDate || data.end_date
         ? new Date(data.endDate || data.end_date!)
         : null;
-    event.variant =
-      (data.variant as "primary" | "success" | "warning" | "danger") ||
-      "primary";
+    event.link = data.link || "";
     event.status = data.status || "";
     event.image = data.image || "";
-    event.createdAt = new Date();
-    event.updatedAt = new Date();
 
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Event);
-      return await repo.save(event);
-    }
-    event.id = this.memorySeq++;
-    this.memoryEvents.set(event.id, event);
-    return event;
+    return await this.repo.save(event);
   }
 
   public async update(id: number, data: EventInput): Promise<Event> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Event);
-      const event = await repo.findOneBy({ id });
-      if (!event) throw new Error("Event not found");
-
-      if (data.title !== undefined) event.title = data.title;
-      if (data.description !== undefined) event.description = data.description;
-      if (data.location !== undefined) event.location = data.location;
-      if (data.startDate || data.start_date)
-        event.startDate = new Date(data.startDate || data.start_date!);
-      if (data.endDate !== undefined || data.end_date !== undefined) {
-        event.endDate =
-          data.endDate || data.end_date
-            ? new Date(data.endDate || data.end_date!)
-            : null;
-      }
-      if (data.variant !== undefined)
-        event.variant = data.variant as
-          | "primary"
-          | "success"
-          | "warning"
-          | "danger";
-      if (data.status !== undefined) event.status = data.status;
-      if (data.image !== undefined) event.image = data.image;
-      event.updatedAt = new Date();
-
-      return await repo.save(event);
-    }
-
-    const event = this.memoryEvents.get(id);
+    const event = await this.repo.findOneBy({ id });
     if (!event) throw new Error("Event not found");
 
     if (data.title !== undefined) event.title = data.title;
@@ -148,26 +76,15 @@ export class EventService {
           ? new Date(data.endDate || data.end_date!)
           : null;
     }
-    if (data.variant !== undefined)
-      event.variant = data.variant as
-        | "primary"
-        | "success"
-        | "warning"
-        | "danger";
+    if (data.link !== undefined) event.link = data.link;
     if (data.status !== undefined) event.status = data.status;
     if (data.image !== undefined) event.image = data.image;
-    event.updatedAt = new Date();
 
-    this.memoryEvents.set(id, event);
-    return event;
+    return await this.repo.save(event);
   }
 
   public async delete(id: number): Promise<boolean> {
-    if (AppDataSource.isInitialized) {
-      const repo = AppDataSource.getRepository(Event);
-      const res = await repo.delete({ id });
-      return (res.affected || 0) > 0;
-    }
-    return this.memoryEvents.delete(id);
+    const res = await this.repo.delete({ id });
+    return (res.affected || 0) > 0;
   }
 }

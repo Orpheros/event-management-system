@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from "typeorm";
 
 @Entity("events")
 export class Event {
@@ -20,8 +26,8 @@ export class Event {
   @Column({ name: "end_date", type: "timestamptz", nullable: true })
   endDate?: Date | null;
 
-  @Column({ type: "varchar", length: 50, default: "primary" })
-  variant!: "primary" | "success" | "warning" | "danger";
+  @Column({ type: "varchar", length: 500, default: "" })
+  link!: string;
 
   @Column({ type: "varchar", length: 50, default: "" })
   status!: string;
@@ -41,17 +47,23 @@ export class Event {
       title: this.title,
       description: this.description,
       location: this.location,
-      start_date: this.startDate instanceof Date ? this.startDate.toISOString() : this.startDate,
-      end_date: this.endDate instanceof Date ? this.endDate.toISOString() : this.endDate,
-      startDate: this.startDate instanceof Date ? this.startDate.toISOString() : this.startDate,
-      endDate: this.endDate instanceof Date ? this.endDate.toISOString() : this.endDate,
-      variant: this.variant,
+      start_date:
+        this.startDate instanceof Date
+          ? this.startDate.toISOString()
+          : this.startDate,
+      end_date:
+        this.endDate instanceof Date
+          ? this.endDate.toISOString()
+          : this.endDate,
+      link: this.link,
       status: this.status,
       image: this.image,
-      created: this.createdAt ? this.createdAt.toISOString() : new Date().toISOString(),
-      updated: this.updatedAt ? this.updatedAt.toISOString() : new Date().toISOString(),
-      collectionId: "events",
-      collectionName: "events",
+      created: this.createdAt
+        ? this.createdAt.toISOString()
+        : new Date().toISOString(),
+      updated: this.updatedAt
+        ? this.updatedAt.toISOString()
+        : new Date().toISOString(),
     };
   }
 }

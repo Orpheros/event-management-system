@@ -20,13 +20,13 @@ export default class TransactionController {
   @Inject(TransactionService)
   private transactionService!: TransactionService;
 
-  @GET("/raw")
-  async getRawTransactions(request: FastifyRequest, reply: FastifyReply) {
+  @GET("/")
+  async getTransactions(request: FastifyRequest, reply: FastifyReply) {
     const transactions = await this.transactionService.findAll();
     return transactions.map((t) => t.toJSON());
   }
 
-  @PUT("/raw")
+  @PUT("/")
   async updateTransaction(request: FastifyRequest<{ Body: TransactionBody }>, reply: FastifyReply) {
     const { id, ...data } = request.body || {};
     if (!id) {
@@ -41,7 +41,7 @@ export default class TransactionController {
     }
   }
 
-  @DELETE("/raw")
+  @DELETE("/")
   async deleteTransaction(request: FastifyRequest<{ Querystring: DeleteQuery }>, reply: FastifyReply) {
     const id = request.query.id;
     if (!id) {

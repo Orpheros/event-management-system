@@ -39,7 +39,6 @@ export class Transaction {
     return {
       id: this.id,
       name: this.name,
-      eventDate: this.eventDate,
       event_date: this.eventDate,
       member: this.member,
       quantity: this.quantity,
@@ -49,8 +48,6 @@ export class Transaction {
       notes: this.notes,
       created: this.createdAt ? this.createdAt.toISOString() : new Date().toISOString(),
       updated: this.updatedAt ? this.updatedAt.toISOString() : new Date().toISOString(),
-      collectionId: "transaction",
-      collectionName: "transaction",
     };
   }
 }
