@@ -22,6 +22,11 @@ export default class FileController {
     });
   }
 
+  @GET("/")
+  async list() {
+    return this.fileService.list();
+  }
+
   @GET("/:filename")
   async serveFile(request: FastifyRequest<{ Params: { filename: string } }>, reply: FastifyReply) {
     const { filename } = request.params;

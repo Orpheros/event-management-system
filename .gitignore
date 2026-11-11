@@ -79,3 +79,5 @@ ehthumbs.db
 *.swp
 
 ./uploads
+
+uploads/
