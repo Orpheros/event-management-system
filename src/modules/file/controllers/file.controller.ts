@@ -1,4 +1,4 @@
-import { Controller, GET, POST, Inject } from "fastify-decorators";
+import { Controller, GET, POST, DELETE, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { FileService } from "../services/file.service.js";
 
@@ -25,6 +25,15 @@ export default class FileController {
   @GET("/")
   async list() {
     return this.fileService.list();
+  }
+
+  @DELETE("/:filename")
+  async remove(request: FastifyRequest<{ Params: { filename: string } }>, reply: FastifyReply) {
+    const deleted = await this.fileService.delete(request.params.filename);
+    if (!deleted) {
+      return reply.status(404).send({ error: "File not found" });
+    }
+    return reply.status(204).send();
   }
 
   @GET("/:filename")

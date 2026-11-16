@@ -35,6 +35,9 @@ export class Event {
   @Column({ type: "varchar", length: 255, default: "" })
   image!: string;
 
+  @Column({ name: "status_active", type: "int", default: 1 })
+  statusActive!: number;
+
   @CreateDateColumn({ name: "created_at" })
   createdAt!: Date;
 
@@ -58,6 +61,7 @@ export class Event {
       link: this.link,
       status: this.status,
       image: this.image,
+      status_active: this.statusActive,
       created: this.createdAt
         ? this.createdAt.toISOString()
         : new Date().toISOString(),

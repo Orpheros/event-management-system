@@ -48,6 +48,14 @@ export class FileService {
     return createReadStream(filePath);
   }
 
+  // Deletes a stored file by name. Returns false if it was not found.
+  public async delete(filename: string): Promise<boolean> {
+    const resolvedPath = this.resolveFilePath("", "", filename);
+    if (!resolvedPath) return false;
+    await fs.unlink(resolvedPath);
+    return true;
+  }
+
   // Lists files in the upload root with size and modified time.
   public async list(): Promise<{ filename: string; url: string; size: number; modifiedAt: Date }[]> {
     const dir = join(process.cwd(), UPLOAD_ROOT);

@@ -27,11 +27,11 @@ await fastify.register(cors, {
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 });
 
-// // Register JWT
-// await fastify.register(jwt, {
-//   secret:
-//     process.env.JWT_SECRET || "super-secret-stellar-luna-jwt-token-key-2026",
-// });
+// Register JWT
+await fastify.register(jwt, {
+  secret:
+    process.env.JWT_SECRET || "super-secret-stellar-luna-jwt-token-key-2026",
+});
 
 // Register Multipart (File uploads up to 5MB)
 await fastify.register(multipart, {
