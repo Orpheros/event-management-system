@@ -1,6 +1,7 @@
 import { Controller, GET, PUT, DELETE, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { TransactionService } from "../services/transaction.service.js";
+import { adminGuard } from "../../auth/guards/auth.guard.js";
 
 interface TransactionBody {
   id?: string;
@@ -26,7 +27,7 @@ export default class TransactionController {
     return transactions.map((t) => t.toJSON());
   }
 
-  @PUT("/")
+  @PUT("/", { onRequest: adminGuard })
   async updateTransaction(request: FastifyRequest<{ Body: TransactionBody }>, reply: FastifyReply) {
     const { id, ...data } = request.body || {};
     if (!id) {
@@ -41,7 +42,7 @@ export default class TransactionController {
     }
   }
 
-  @DELETE("/")
+  @DELETE("/", { onRequest: adminGuard })
   async deleteTransaction(request: FastifyRequest<{ Querystring: DeleteQuery }>, reply: FastifyReply) {
     const id = request.query.id;
     if (!id) {

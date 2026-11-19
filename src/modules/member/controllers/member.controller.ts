@@ -2,6 +2,7 @@ import { Controller, GET, POST, PUT, DELETE, Inject } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { MemberService } from "../services/member.service.js";
 import { saveUploadedFile } from "../../../utils/upload.js";
+import { adminGuard } from "../../auth/guards/auth.guard.js";
 
 interface DeleteQuery {
   id?: string;
@@ -27,7 +28,7 @@ export default class MemberController {
     return member.toJSON();
   }
 
-  @POST("/")
+  @POST("/", { onRequest: adminGuard })
   async createMember(request: FastifyRequest, reply: FastifyReply) {
     let fields: Record<string, string> = {};
     let fileBuffer: Buffer | null = null;
@@ -72,7 +73,7 @@ export default class MemberController {
     return created.toJSON();
   }
 
-  @PUT("/")
+  @PUT("/", { onRequest: adminGuard })
   async updateMember(request: FastifyRequest, reply: FastifyReply) {
     let fields: Record<string, string> = {};
     let fileBuffer: Buffer | null = null;
@@ -116,7 +117,7 @@ export default class MemberController {
     return updated.toJSON();
   }
 
-  @DELETE("/")
+  @DELETE("/", { onRequest: adminGuard })
   async deleteMember(request: FastifyRequest<{ Querystring: DeleteQuery }>, reply: FastifyReply) {
     const id = request.query.id;
     if (!id) {

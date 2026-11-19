@@ -25,12 +25,12 @@ export class AuthService {
     return user;
   }
 
-  public signToken(user: { id: number; email: string; stellarRole: "admin" | "member" }) {
+  public signToken(user: { id: number; email: string; role: "admin" | "member" }) {
     return this.fastify.jwt.sign(
       {
         id: user.id,
         email: user.email,
-        stellar_role: user.stellarRole,
+        role: user.role,
       },
       { expiresIn: "7d" }
     );

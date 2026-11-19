@@ -9,6 +9,7 @@ import {
 } from "fastify-decorators";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { EventService } from "../services/event.service.js";
+import { adminGuard } from "../../auth/guards/auth.guard.js";
 
 interface EventBody {
   id?: string;
@@ -20,7 +21,7 @@ interface EventBody {
   startDate?: string;
   endDate?: string;
   link?: string;
-  status?: string;
+  status_active?: number;
   image?: string;
 }
 
@@ -44,7 +45,7 @@ export default class EventController {
     return await this.eventService.findForCalendar();
   }
 
-  @POST("/")
+  @POST("/", { onRequest: adminGuard })
   async createEvent(
     request: FastifyRequest<{ Body: EventBody }>,
     reply: FastifyReply,
@@ -54,7 +55,7 @@ export default class EventController {
     return created.toJSON();
   }
 
-  @PUT("/")
+  @PUT("/", { onRequest: adminGuard })
   async updateEvent(
     request: FastifyRequest<{ Body: EventBody }>,
     reply: FastifyReply,
@@ -67,7 +68,7 @@ export default class EventController {
     return updated.toJSON();
   }
 
-  @PATCH("/")
+  @PATCH("/", { onRequest: adminGuard })
   async patchEvent(
     request: FastifyRequest<{ Body: EventBody }>,
     reply: FastifyReply,
@@ -80,7 +81,7 @@ export default class EventController {
     return updated.toJSON();
   }
 
-  @DELETE("/")
+  @DELETE("/", { onRequest: adminGuard })
   async deleteEvent(
     request: FastifyRequest<{ Querystring: DeleteQuery }>,
     reply: FastifyReply,

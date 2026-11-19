@@ -2,7 +2,7 @@ import { Service } from "fastify-decorators";
 import { promises as fs, createReadStream, existsSync } from "node:fs";
 import { pipeline } from "node:stream/promises";
 import { createWriteStream } from "node:fs";
-import { join, extname } from "node:path";
+import { join, extname, basename } from "node:path";
 import { nanoid } from "nanoid";
 import sharp from "sharp";
 
@@ -48,11 +48,17 @@ export class FileService {
     return createReadStream(filePath);
   }
 
-  // Deletes a stored file by name. Returns false if it was not found.
+  // Deletes a file from the upload root only. basename() strips any path
+  // components (../, absolute paths, slashes), so traversal is impossible.
+  // Returns false if the name is empty or the file does not exist.
   public async delete(filename: string): Promise<boolean> {
-    const resolvedPath = this.resolveFilePath("", "", filename);
-    if (!resolvedPath) return false;
-    await fs.unlink(resolvedPath);
+    const safeName = basename(filename);
+    if (!safeName || safeName === "." || safeName === "..") return false;
+
+    const target = join(process.cwd(), UPLOAD_ROOT, safeName);
+    if (!existsSync(target)) return false;
+
+    await fs.unlink(target);
     return true;
   }
 

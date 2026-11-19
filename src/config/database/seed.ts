@@ -24,7 +24,7 @@ export async function seedDatabase() {
     admin.passwordHash = await bcrypt.hash("password123", 10);
     admin.name = "Super Admin";
     admin.avatar = "";
-    admin.stellarRole = "admin";
+    admin.role = "admin";
     admin.emailVisibility = true;
     admin.verified = true;
     await userRepo.save(admin);
@@ -106,7 +106,6 @@ export async function seedDatabase() {
     event.startDate = new Date("2026-04-22T00:00:00.000Z");
     event.endDate = new Date("2026-04-22T00:00:00.000Z");
     event.link = "https://maps.google.com/?q=Lippo+Kramat+Jati";
-    event.status = "pre_sale";
     await eventRepo.save(event);
     console.log("✅ Seeded initial sample event");
   }

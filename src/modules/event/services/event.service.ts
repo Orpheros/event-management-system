@@ -11,8 +11,9 @@ export interface EventInput {
   startDate?: string | Date;
   endDate?: string | Date | null;
   link?: string;
-  status?: string;
   image?: string;
+  status_active?: number;
+  statusActive?: number;
 }
 
 @Service()
@@ -35,7 +36,7 @@ export class EventService {
         e.startDate instanceof Date ? e.startDate.toISOString() : e.startDate,
       end_date: e.endDate instanceof Date ? e.endDate.toISOString() : e.endDate,
       link: e.link,
-      status: e.status,
+      status_active: e.statusActive,
       location: e.location,
     }));
   }
@@ -55,8 +56,9 @@ export class EventService {
         ? new Date(data.endDate || data.end_date!)
         : null;
     event.link = data.link || "";
-    event.status = data.status || "";
     event.image = data.image || "";
+    const active = data.statusActive ?? data.status_active;
+    if (active !== undefined) event.statusActive = Number(active);
 
     return await this.repo.save(event);
   }
@@ -77,8 +79,9 @@ export class EventService {
           : null;
     }
     if (data.link !== undefined) event.link = data.link;
-    if (data.status !== undefined) event.status = data.status;
     if (data.image !== undefined) event.image = data.image;
+    const active = data.statusActive ?? data.status_active;
+    if (active !== undefined) event.statusActive = Number(active);
 
     return await this.repo.save(event);
   }

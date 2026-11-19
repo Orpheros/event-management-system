@@ -17,8 +17,8 @@ export class User {
   @Column({ type: "varchar", length: 255, default: "" })
   avatar!: string;
 
-  @Column({ name: "stellar_role", type: "varchar", length: 50, default: "member" })
-  stellarRole!: "admin" | "member";
+  @Column({ name: "role", type: "varchar", length: 50, default: "member" })
+  role!: "admin" | "member";
 
   @Column({ name: "email_visibility", type: "boolean", default: false })
   emailVisibility!: boolean;
@@ -38,7 +38,7 @@ export class User {
       email: this.email,
       name: this.name,
       avatar: this.avatar,
-      stellar_role: this.stellarRole,
+      role: this.role,
       emailVisibility: this.emailVisibility,
       verified: this.verified,
       created: this.createdAt ? this.createdAt.toISOString() : new Date().toISOString(),

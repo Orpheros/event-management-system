@@ -29,9 +29,6 @@ export class Event {
   @Column({ type: "varchar", length: 500, default: "" })
   link!: string;
 
-  @Column({ type: "varchar", length: 50, default: "" })
-  status!: string;
-
   @Column({ type: "varchar", length: 255, default: "" })
   image!: string;
 
@@ -59,7 +56,6 @@ export class Event {
           ? this.endDate.toISOString()
           : this.endDate,
       link: this.link,
-      status: this.status,
       image: this.image,
       status_active: this.statusActive,
       created: this.createdAt
