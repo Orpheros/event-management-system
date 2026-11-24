@@ -21,7 +21,7 @@ export default class TransactionController {
   @Inject(TransactionService)
   private transactionService!: TransactionService;
 
-  @GET("/")
+  @GET("/", { onRequest: adminGuard })
   async getTransactions(request: FastifyRequest, reply: FastifyReply) {
     const transactions = await this.transactionService.findAll();
     return transactions.map((t) => t.toJSON());
