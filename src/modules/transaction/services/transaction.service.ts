@@ -50,6 +50,10 @@ export class TransactionService {
     return await this.repo.findOneBy({ id });
   }
 
+  public async findByTransactionNumber(transactionNumber: string): Promise<Transaction | null> {
+    return await this.repo.findOneBy({ transactionNumber });
+  }
+
   public async createPO(payload: {
     name: string;
     eventDate: string;

@@ -4,7 +4,8 @@ import { TransactionService } from "../services/transaction.service.js";
 import { saveUploadedFile } from "../../../utils/upload.js";
 
 interface StatusQuery {
-  id?: string;
+  transaction_number?: string;
+  transactionNumber?: string;
 }
 
 @Controller("/payment")
@@ -64,6 +65,7 @@ export default class PaymentController {
     return {
       success: true,
       transactionId: transaction.id,
+      transactionNumber: transaction.transactionNumber,
       id: transaction.id,
       record: transaction.toJSON(),
     };
@@ -71,12 +73,12 @@ export default class PaymentController {
 
   @GET("/status")
   async checkStatus(request: FastifyRequest<{ Querystring: StatusQuery }>, reply: FastifyReply) {
-    const id = request.query.id;
-    if (!id) {
-      return reply.status(400).send({ error: "Transaction id is required" });
+    const transactionNumber = request.query.transaction_number || request.query.transactionNumber;
+    if (!transactionNumber) {
+      return reply.status(400).send({ error: "Transaction number is required" });
     }
 
-    const tx = await this.transactionService.findById(Number(id));
+    const tx = await this.transactionService.findByTransactionNumber(transactionNumber);
     if (!tx) {
       return reply.status(404).send({ error: "Transaction not found" });
     }
@@ -85,6 +87,7 @@ export default class PaymentController {
       success: true,
       data: {
         id: tx.id,
+        transaction_number: tx.transactionNumber,
         name: tx.name,
         member: tx.member,
         quantity: tx.quantity,

@@ -51,6 +51,7 @@ export default class OTSController {
     return {
       success: true,
       transactionId: transaction.id,
+      transactionNumber: transaction.transactionNumber,
       id: transaction.id,
       record: transaction.toJSON(),
     };
